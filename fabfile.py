@@ -126,6 +126,7 @@ def configure_gunicorn():
     with cd('/home/www'):
         fabtools.files.upload_template(local_config_dir + '/gunicorn-start-cameras', '.',
                                        use_sudo=True,
+                                       use_jinja=True,
                                        user=www_user,
                                        context={'www_folder': www_folder,
                                                 'env_folder': env_folder,
@@ -133,6 +134,10 @@ def configure_gunicorn():
                                                 'www_group': www_group},
                                        chown=True)
         sudo('chmod +x gunicorn-start-cameras')
+
+
+
+
 
 
 
@@ -152,15 +157,21 @@ def deploy():
             local('git commit -m "{message}"'.format(message=message))
 
 
-
-
-
-
 def install_packages():
     """
     Install required packages
     """
-    require.deb.packages(['python-dev', 'libldap2-dev', 'libsasl2-dev', 'libssl-dev'])
+    require.deb.packages(['python-dev', 'libldap2-dev', 'libsasl2-dev', 'libssl-dev', 'supervisor'])
+
+
+def configure_supervisor():
+    """
+    Require supervisor to be running
+    """
+    require.supervisor.process('cameras-flask',
+        command='/home/www/gunicorn-start-cameras',
+        stdout_logfile=www_folder + '/gunicorn.log')
+    
 
 
 
