@@ -171,7 +171,26 @@ def configure_supervisor():
     require.supervisor.process('cameras-flask',
         command='/home/www/gunicorn-start-cameras',
         stdout_logfile=www_folder + '/gunicorn.log')
-    
+
+
+
+def put_host_export():
+    """
+    Put the host-export file on the server as it is not tracked by git
+    """
+    require.files.file(www_folder + '/server-config/host-export',
+                       source='server-config/host-export',
+                       owner=www_user,
+                       group=www_group,
+                       use_sudo=True)
+
+
+def configure_nginx():
+    """
+    Configure the nginx server
+    """
+    require.nginx.site('apps.bridgtonacademy.org',
+                       template_source='server-config/cameras-flask')
 
 
 
