@@ -9,7 +9,7 @@ import fabtools
 
 # uses a file called fabhosts where servers can be defined but gitignored
 # looks like
-# 
+#
 # from fabric.api import env
 #
 # def prod():
@@ -25,6 +25,7 @@ local_app_dir = '.'
 local_config_dir = local_app_dir + '/server-config'
 
 www_user = 'cameras-flask'
+www_group = 'cameras-flask'
 www_folder = '/home/www/cameras-flask'
 env_folder = '/home/www/env-cameras-flask/'
 
@@ -43,7 +44,8 @@ def create_user():
     """
     Create a camera_flask user for running cameras-flask
     """
-    require.user(www_user, system=True)
+    require.groups.group(www_group)
+    require.users.user(www_user, group=www_group, system=True)
 
 
 def create_www_folder():
@@ -68,7 +70,21 @@ def put_requirements():
     Put our code on the server
     """
     with cd(www_folder):
-        require.file('requirements.txt', source='requirements.txt', use_sudo=True, owner=www_user)
+        require.file('requirements.txt',
+                     source='requirements.txt',
+                     use_sudo=True,
+                     owner=www_user)
+
+
+def put_config():
+    """
+    Put our configuration on the server
+    """
+    with cd(www_folder):
+        require.file('config.py',
+                     source='config.py',
+                     use_sudo=True,
+                     owner=www_user)
 
 
 def configure_git():
@@ -76,17 +92,47 @@ def configure_git():
     1. Setup bare Git repo
     2. Create post-receive hook
     """
-    require.directory(remote_git_dir, use_sudo=True)
+    require.groups.group('git')
+    require.users.user('git', group='git', system=True)
+    require.directory(remote_git_dir,
+                      use_sudo=True,
+                      owner='git',
+                      group='git')
     with cd(remote_git_dir):
-        run('pwd')
-        #with lcd(local_config_dir):
-        local('pwd')
-        fabtools.files.upload_template(local_config_dir + '/post-receive', '.',
-                                        use_sudo=True,
-                                        use_jinja=True,
-                                        context={'www_folder': www_folder})
-        
-    
+        require.git.command()
+        require.directory(remote_git_dir + '/cameras-flask.git',
+                          use_sudo=True,
+                          owner='git',
+                          group='git')
+        sudo('chown -R git:git *')
+        sudo('chmod -Rf ug+w objects')
+        with cd('cameras-flask.git'):
+            sudo('git init --bare')
+            with cd('hooks'):
+                fabtools.files.upload_template(local_config_dir + '/post-receive', '.',
+                                               use_sudo=True,
+                                               use_jinja=True,
+                                               context={'www_folder': www_folder},
+                                               user='git',
+                                               chown=True)
+                sudo('chmod +x post-receive')
+
+
+
+def configure_gunicorn():
+    """
+    Configure a gunicorn server
+    """
+    with cd('/home/www'):
+        fabtools.files.upload_template(local_config_dir + '/gunicorn-start-cameras', '.',
+                                       use_sudo=True,
+                                       user=www_user,
+                                       context={'www_folder': www_folder,
+                                                'env_folder': env_folder,
+                                                'www_user': www_user,
+                                                'www_group': www_group},
+                                       chown=True)
+        sudo('chmod +x gunicorn-start-cameras')
 
 
 
