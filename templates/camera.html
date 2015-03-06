@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Security Cameras{% endblock %}
+
+{% block content %}
+	<div class="jumbotron" style="background-image: url({{ url_for('static', filename='img/header.jpg' ) }}); background-size: 100%;">
+  		<div class="container">
+	  		<h1>{{ camera_title }}</h1>
+  		</div>
+	</div>
+
+	<div class="container">
+		<a href="http://{{ camera_name }}.camera.banet.local" target="blank">Camera Admin</a>
+		<img id="stream" class="img-responsive" src="http://{{ view_user }}:{{ view_pass }}@{{camera_name}}{{ camera_base_url }}{{ camera_view_path }}" width="720" height="540" border="0" alt="If no image is displayed, there might be too many viewers, or the browser configuration may have to be changed. See help for detailed instructions on how to do this.">
+
+	</div>
+
+{% endblock %}

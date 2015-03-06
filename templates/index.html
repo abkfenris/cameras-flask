@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Security Cameras{% endblock %}
+
+
+
+{% block content %}
+	<div class="jumbotron" style="background-image: url({{ url_for('static', filename='img/header.jpg' ) }}); background-size: 100%;">
+  		<div class="container">
+	  		<h1>Campus Security Cameras</h1>
+  		</div>
+	</div>
+	
+	<div class="container">
+	
+		<a href="{{ url_for('allcameras') }}">View all Cameras</a>
+		<ul>
+			{% for url, title in camera_dict.iteritems() %}
+			<li><a href="http://{{ url }}.camera.banet.local/" target="blank">{{ title }}</a> - <a href="{{ url_for('camerapage', camera_name=url ) }}">View Only</a></li>
+			{% endfor %}
+		</ul>
+	</div>
+  </div>
+
+</div>
+</div>
+{% endblock %}

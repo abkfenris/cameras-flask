@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Security Cameras{% endblock %}
+
+{% block content %}
+	<div class="jumbotron" style="background-image: url({{ url_for('static', filename='img/header.jpg' ) }}); background-size: 100%;">
+  		<div class="container">
+	  		<h1>Campus Security Cameras</h1>
+  		</div>
+	</div>
+
+	<div class="container">
+		{% for url, title in camera_dict.iteritems() %}
+		<h2>{{ title }}</h2>
+		<img id="stream" class="img-responsive" src="http://{{ view_user }}:{{ view_pass }}@{{ url }}{{ camera_base_url }}{{ camera_view_path }}" width="720" height="540" border="0" alt="If no image is displayed, there might be too many viewers, or the browser configuration may have to be changed. See help for detailed instructions on how to do this.">
+		{% endfor %}
+
+	</div>
+
+{% endblock %}
